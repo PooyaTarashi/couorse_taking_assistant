@@ -1,12 +1,27 @@
 import sys
 import pyperclip as ppc
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QScrollArea, QLabel, QLineEdit, QPushButton, QHBoxLayout
+from PyQt5.QtCore import QTimer
 from main import System, Item
 
 class APushButton(QPushButton):
     def __init__(self, item:Item):
         super().__init__(f'{item.id} | {item.caption}')
-        self.clicked.connect(lambda: ppc.copy(item.id))
+        self.default_stylesheet = self.styleSheet()
+        self.clicked.connect(lambda: self.action(item))
+
+    def action(self, item:Item):
+        ppc.copy(item.id)
+        self.setStyleSheet("background-color: red; color: white;")
+        # Use a QTimer to revert the color after 0.5 seconds
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.timeout.connect(self.restore_color)
+        timer.start(100)  # 500 milliseconds (0.5 seconds)
+
+    def restore_color(self):
+        # Restore the default button color
+        self.setStyleSheet(self.default_stylesheet)
 
 class DPushButton(QPushButton):
     def __init__(self, item:Item, win):
